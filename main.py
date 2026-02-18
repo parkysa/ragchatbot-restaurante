@@ -1,8 +1,13 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from langchain_chroma.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
-
 from langchain_ollama import ChatOllama
+
+# configuração do servidor 
+app = Flask(__name__)
+CORS(app)
 
 CAMINHO_DB = "db"
 
@@ -20,40 +25,46 @@ Base de conhecimento:
 {base_conhecimento}
 """
 
-
+@app.route("/perguntar", methods=["POST"])
 def perguntar():
-    pergunta = input("Escreva sua pergunta: ")
+    dados = request.get_json()
+    pergunta = dados.get("pergunta")
+
+    if not pergunta:
+        return jsonify({"resposta": "Pergunta não enviada."})
 
     # carregar o banco de dados
-    db = Chroma(persist_directory=CAMINHO_DB, embedding_function=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2"))
+    db = Chroma(
+        persist_directory=CAMINHO_DB,
+        embedding_function=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    )
 
-    # comparar a pergunta do usuario (embedding) com o meu banco de dados. (k é o numero de chunk)
     resultados = db.similarity_search_with_relevance_scores(pergunta, k=2)
+
     if len(resultados) == 0:
-        print("Não consegui encontrar informações relevantes na base")
-        return
-    
-    # extrai só o texto de cada chunk e coloca numa lista
+        return jsonify({"resposta": "Não consegui encontrar informações relevantes na base."})
+
     textos_resultado = []
     for resultado in resultados:
         texto = resultado[0].page_content
         textos_resultado.append(texto)
-    
-    # junta toda a lista de textos numa string com um separador
+
     base_conhecimento = "\n\n----\n\n".join(textos_resultado)
-    
-    #passando os valores pro prompt
+
     prompt = ChatPromptTemplate.from_template(prompt_template)
-    prompt = prompt.invoke({"pergunta": pergunta, "base_conhecimento": base_conhecimento})
+    prompt = prompt.invoke({
+        "pergunta": pergunta,
+        "base_conhecimento": base_conhecimento
+    })
 
     modelo = ChatOllama(
         model="phi3:mini",
-        temperature=0.2 # nivel de criatividade
+        temperature=0.2
     )
 
-    # manda prompt pro ollama e pega só o texto de resposta
     texto_resposta = modelo.invoke(prompt).content
 
-    print("Resposta da IA:", texto_resposta)
+    return jsonify({"resposta": texto_resposta})
 
-perguntar()
+if __name__ == "__main__":
+    app.run(debug=True)

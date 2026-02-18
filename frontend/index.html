@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concierge - Império do Sabor</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Império do Sabor</h1>
+            <p class="subtitle">Assistente Corporativo de Gastronomia</p>
+        </header>
+
+        <div id="chat-container">
+            <div id="chat-box">
+                <div class="message bot">
+                    Olá! Sou o assistente do Império do Sabor. Como posso ajudar com informações sobre nosso faturamento, cardápio ou indicadores hoje?
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" id="usuario-input" placeholder="Ex: Qual a meta de faturamento para 2026?">
+                <button onclick="enviarPergunta()" id="btn-enviar">
+                    <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
